@@ -50,5 +50,9 @@ vncserver
 # Start noVNC (websockify) in background
 websockify -D --web=/usr/share/novnc/ --cert=$HOME/novnc.pem 6080 localhost:5901
 
+sudo apt install neofetch -y
+
+neofetch
+
 echo "✅ Setup complete! Access noVNC at http://<your-server-ip>:6080"
 echo "📌 VPS code '$vpscode' has been applied to /etc/hosts."
