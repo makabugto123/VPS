@@ -3,16 +3,16 @@
 # Ask for VPS code
 read -p "Enter your VPS code: " vpscode
 
-# Update /etc/hosts with VPS code
-sudo bash -c "cat <<EOF > /etc/hosts
-127.0.0.1       localhost $vpscode
+# Correctly apply VPS code to /etc/hosts
+sudo tee /etc/hosts > /dev/null <<EOF
+127.0.0.1       localhost ${vpscode}
 ::1     localhost ip6-localhost ip6-loopback
 fe00::  ip6-localnet
 ff00::  ip6-mcastprefix
 ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters
 172.17.0.2      e91e22096dd8
-EOF"
+EOF
 
 # Install required packages including Firefox
 sudo apt update && sudo apt install -y \
@@ -29,11 +29,11 @@ openssl req -x509 -nodes -newkey rsa:3072 \
     -keyout ~/novnc.pem -out ~/novnc.pem -days 3650 \
     -subj "/C=US/ST=None/L=None/O=NoVNC/CN=localhost"
 
-# Start and stop VNC to generate initial configs
+# Initialize VNC config
 vncserver
 vncserver -kill :1
 
-# Backup and replace xstartup file
+# Backup and create new xstartup
 [ -f ~/.vnc/xstartup ] && mv ~/.vnc/xstartup ~/.vnc/xstartup.bak
 
 cat <<EOF > ~/.vnc/xstartup
@@ -48,11 +48,11 @@ chmod +x ~/.vnc/xstartup
 vncserver
 
 # Start noVNC (websockify) in background
-websockify -D --web=/usr/share/novnc/ --cert=$HOME/novnc.pem 6080 localhost:5901
+websockify -D --web=/usr/share/novnc/ --cert=\$HOME/novnc.pem 6080 localhost:5901
 
-sudo apt install neofetch -y
-
+# Display system info
 neofetch
 
-echo "✅ Setup complete! Access noVNC at http://<your-server-ip>:6080"
-echo "📌 VPS code '$vpscode' has been applied to /etc/hosts."
+# Output access info
+echo "✅ Setup complete! Access noVNC at https://${vpscode}-6080.csb.app/vnc.html"
+echo "📌 VPS code '${vpscode}' has been applied to /etc/hosts."
