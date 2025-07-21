@@ -1,10 +1,32 @@
 #!/bin/bash
 set -e  # Exit on error
 
-# Ask for VPS code
-read -p "Enter your VPS code: " vpscode
+# --- START FIX ---
+# Check if a VPS code was provided as the first argument
+if [ -n "$1" ]; then
+  vpscode="$1"
+else
+  # If no argument, check if the script is running in an interactive terminal
+  if [ -t 0 ]; then
+    # Prompt for the VPS code if interactive
+    read -p "Enter your VPS code: " vpscode
+  else
+    # Fail with an error if non-interactive and no code was provided
+    echo "Error: This script needs a VPS code to continue."
+    echo "Usage: $0 <your_vps_code>"
+    exit 1
+  fi
+fi
+
+# Exit if the vpscode is still empty
+if [ -z "$vpscode" ]; then
+    echo "Error: VPS code cannot be empty."
+    exit 1
+fi
+# --- END FIX ---
 
 # Apply VPS code to /etc/hosts
+echo "Applying VPS code '${vpscode}' to /etc/hosts..."
 sudo tee /etc/hosts > /dev/null <<EOF
 127.0.0.1       localhost ${vpscode}
 ::1             localhost ip6-localhost ip6-loopback
@@ -16,6 +38,7 @@ ff02::2         ip6-allrouters
 EOF
 
 # Update and install required packages
+echo "Updating and installing packages..."
 sudo apt update && sudo apt install -y \
     xfce4 xfce4-goodies \
     novnc \
@@ -25,11 +48,13 @@ sudo apt update && sudo apt install -y \
     htop nano neofetch firefox
 
 # Generate SSL certificate for noVNC
+echo "Generating SSL certificate..."
 openssl req -x509 -nodes -newkey rsa:3072 \
     -keyout "$HOME/novnc.pem" -out "$HOME/novnc.pem" -days 3650 \
     -subj "/C=US/ST=None/L=None/O=NoVNC/CN=localhost"
 
 # Initialize VNC config
+echo "Configuring VNC server..."
 vncserver
 vncserver -kill :1
 
@@ -48,6 +73,7 @@ chmod +x "$HOME/.vnc/xstartup"
 vncserver
 
 # Start noVNC (websockify) in background
+echo "Starting noVNC service..."
 websockify -D --web=/usr/share/novnc/ --cert="$HOME/novnc.pem" 6080 localhost:5901
 
 # Display system info
