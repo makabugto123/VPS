@@ -3,7 +3,7 @@ free vps method with vnc
 
 VNC:
 ```
-curl -s https://raw.githubusercontent.com/RealBeboy/VPS/main/VPSVNC.sh | bash
+sudo curl -s https://raw.githubusercontent.com/RealBeboy/VPS/main/VPSVNC.sh | bash
 ```
 note: make sure its lightdm
 NO VNC(Playit.gg [SSH])
