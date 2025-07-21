@@ -5,7 +5,6 @@ VNC:
 ```
 curl -s -O https://raw.githubusercontent.com/RealBeboy/VPS/refs/heads/main/vps.sh
 bash vps.sh
-
 ```
 note: make sure its lightdm
 NO VNC(Playit.gg [SSH])
