@@ -1,10 +1,10 @@
 #!/bin/bash
-set -e  # Exit script if any command fails
+set -e  # Exit on any error
 
 # Ask for VPS code
 read -p "Enter your VPS code: " vpscode
 
-# Apply VPS code to /etc/hosts safely
+# Apply VPS code to /etc/hosts
 sudo tee /etc/hosts > /dev/null <<EOF
 127.0.0.1       localhost ${vpscode}
 ::1             localhost ip6-localhost ip6-loopback
@@ -15,7 +15,7 @@ ff02::2         ip6-allrouters
 172.17.0.2      e91e22096dd8
 EOF
 
-# Update and install necessary packages (no htop auto-run)
+# Install required packages including Firefox
 sudo apt update && sudo apt install -y \
     xfce4 xfce4-goodies \
     novnc \
@@ -26,34 +26,34 @@ sudo apt update && sudo apt install -y \
 
 # Generate SSL certificate for noVNC
 openssl req -x509 -nodes -newkey rsa:3072 \
-    -keyout ~/novnc.pem -out ~/novnc.pem -days 3650 \
+    -keyout "$HOME/novnc.pem" -out "$HOME/novnc.pem" -days 3650 \
     -subj "/C=US/ST=None/L=None/O=NoVNC/CN=localhost"
 
-# Setup VNC
+# Start and configure VNC
 vncserver
 vncserver -kill :1
 
-# Backup old xstartup if exists and create a new one
-[ -f ~/.vnc/xstartup ] && mv ~/.vnc/xstartup ~/.vnc/xstartup.bak
+# Backup and create new xstartup
+[ -f "$HOME/.vnc/xstartup" ] && mv "$HOME/.vnc/xstartup" "$HOME/.vnc/xstartup.bak"
 
-cat <<EOF > ~/.vnc/xstartup
+cat <<EOF > "$HOME/.vnc/xstartup"
 #!/bin/bash
 xrdb \$HOME/.Xresources
 startxfce4 &
 EOF
 
-chmod +x ~/.vnc/xstartup
+chmod +x "$HOME/.vnc/xstartup"
 
-# Start VNC server again
+# Start VNC server
 vncserver
 
-# Start websockify for noVNC
-websockify -D --web=/usr/share/novnc/ --cert=$HOME/novnc.pem 6080 localhost:5901
+# Start noVNC (websockify) in background
+websockify -D --web=/usr/share/novnc/ --cert="$HOME/novnc.pem" 6080 localhost:5901
 
 # Display system info
 neofetch
 
-# Show access information
+# Output access info
 echo ""
 echo "✅ Setup complete!"
 echo "🌐 Access noVNC at: https://${vpscode}-6080.csb.app/vnc.html"
