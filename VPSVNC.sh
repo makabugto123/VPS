@@ -1,26 +1,22 @@
 #!/bin/bash
-set -e  # Exit on error
+set -e # Exit on error
 
 # --- START FIX ---
-# Check if a VPS code was provided as the first argument
+# Check if a VPS code was provided as a command-line argument.
+# This is the standard way to pass arguments to a script piped from curl.
+# Example: curl ... | bash -s -- <your_vps_code>
 if [ -n "$1" ]; then
   vpscode="$1"
 else
-  # If no argument, check if the script is running in an interactive terminal
-  if [ -t 0 ]; then
-    # Prompt for the VPS code if interactive
-    read -p "Enter your VPS code: " vpscode
-  else
-    # Fail with an error if non-interactive and no code was provided
-    echo "Error: This script needs a VPS code to continue."
-    echo "Usage: $0 <your_vps_code>"
-    exit 1
-  fi
+  # If no argument is provided, force the read prompt to use the
+  # controlling terminal (/dev/tty) instead of stdin, which is the curl pipe.
+  read -p "Enter your VPS code: " vpscode < /dev/tty
 fi
 
-# Exit if the vpscode is still empty
+# Exit if the vpscode is still empty after trying to get it.
 if [ -z "$vpscode" ]; then
-    echo "Error: VPS code cannot be empty."
+    # Redirect error message to stderr
+    echo "Error: VPS code cannot be empty." >&2
     exit 1
 fi
 # --- END FIX ---
