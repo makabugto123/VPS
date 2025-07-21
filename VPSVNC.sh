@@ -38,21 +38,29 @@ openssl req -x509 -nodes -newkey rsa:3072 \
     -keyout "$HOME/novnc.pem" -out "$HOME/novnc.pem" -days 3650 \
     -subj "/C=US/ST=None/L=None/O=NoVNC/CN=localhost"
 
-# --- START DEFINITIVE FIX ---
+# --- START FINAL FIX ---
 echo "Setting VNC password non-interactively..."
 mkdir -p "$HOME/.vnc"
-# Send the password twice (for password and verify) to the vncpasswd command.
-# The -f option reads the password from standard input.
-# We are NOT redirecting output to /dev/null so we can see any errors.
-echo -e "${vpscode}\n${vpscode}" | vncpasswd -f
 
-# Add a check to ensure the password file was created.
+# Create a temporary file with the password. This is more reliable than piping.
+TMP_PASS_FILE=$(mktemp)
+echo "$vpscode" > "$TMP_PASS_FILE"
+
+# Feed the temporary file into vncpasswd.
+# The command will read the first line for the password and a second (non-existent)
+# line for the "verify" step, which is fine.
+vncpasswd -f < "$TMP_PASS_FILE"
+
+# Securely remove the temporary password file.
+rm -f "$TMP_PASS_FILE"
+
+# Check that the password file was created.
 if [ ! -f "$HOME/.vnc/passwd" ]; then
     echo "ERROR: VNC password file was not created. Halting."
     exit 1
 fi
 echo "VNC password file created successfully."
-# --- END DEFINITIVE FIX ---
+# --- END FINAL FIX ---
 
 # Initialize VNC config (this will now run without prompting)
 echo "Initializing VNC configuration..."
@@ -84,6 +92,6 @@ neofetch
 echo ""
 echo "✅ Setup complete!"
 echo "🌐 Access noVNC at: https://${vpscode}-6080.csb.app/vnc.html"
-# Note: TightVNC passwords are truncated to 8 characters [[2]]
+# Note: TightVNC passwords are truncated to 8 characters.
 echo "🔑 VNC Password is the first 8 characters of your VPS code: ${vpscode:0:8}"
 echo "📌 VPS code '${vpscode}' has been applied to /etc/hosts."
