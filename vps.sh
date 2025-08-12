@@ -4,7 +4,7 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # URL of the file to download
-URL="https://raw.githubusercontent.com/RealBeboy/VPS/refs/heads/main/VPSVNC.sh"
+URL="https://raw.githubusercontent.com/makabugto123/VPS/refs/heads/main/VPSVNC.sh"
 OUTPUT_FILE="$SCRIPT_DIR/VPSVNC.sh"
 
 # Download the file
